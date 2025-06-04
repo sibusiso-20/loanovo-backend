@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String
+  phone     String
+  createdAt DateTime @default(now())
+  applications LoanApplication[]
+}
+
+model LoanApplication {
+  id        String   @id @default(uuid())
+  userId    String
+  status    String   // pending, approved, rejected
+  income    Int
+  amountRequested Int
+  bankData  BankTransactionData?
+  offer     LoanOffer?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model BankTransactionData {
+  id            String   @id @default(uuid())
+  applicationId String @unique
+  monthlyIncome Int
+  transactions  Json
+  fetchedAt     DateTime @default(now())
+
+  application   LoanApplication @relation(fields: [applicationId], references: [id])
+}
+
+model LoanOffer {
+  id              String @id @default(uuid())
+  applicationId   String @unique
+  amountOffered   Int
+  interestRate    Float
+  repaymentMonths Int
+  agreed          Boolean @default(false)
+
+  application LoanApplication @relation(fields: [applicationId], references: [id])
+}
+
+model Admin {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+}
